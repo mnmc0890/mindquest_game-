@@ -1,0 +1,214 @@
+<!--
+README.md — MindQuest: A Journey to Well-being
+========================================================
+
+🎮 **Overview**
+MindQuest: A Journey to Well-being is a 2D, choice-based educational web game developed for the RMIT Hackathon 2025 (Challenge 3 – Vibe Coding: Play to Impact). It aims to promote **mental health awareness** and **emotional resilience** among young people in Vietnam through interactive storytelling and simple decision-making mechanics.
+
+🌏 **Theme Justification**
+The game addresses the social challenge of **mental health and well-being**, a growing concern in Vietnam’s youth community. By embedding relatable scenarios and reflective outcomes, MindQuest encourages players to recognize healthy coping mechanisms and empathize with others facing emotional struggles.
+
+🧩 **Gameplay Instructions**
+- Click **Start Game** to begin.
+- Read each scenario and choose the option that best fits your response.
+- Each choice affects your total mindfulness score.
+- At the end, receive personalized feedback based on your cumulative score.
+- Use the 🔈 button to toggle background music.
+
+🛠️ **Technology Stack**
+- Front-end only: **HTML, CSS, JavaScript** (no backend required)
+- Game assets and logic generated using **LLMs (ChatGPT)**
+- Royalty-free background music from **Pixabay**
+
+🎵 **Credits**
+- Background Music: “Relaxing Piano Music” by Lesfm — Pixabay License  
+  [https://pixabay.com/music/beautiful-relaxing-music-relaxing-piano-music-142199/](https://pixabay.com/music/beautiful-relaxing-music-relaxing-piano-music-142199/)
+- Developed by **Team TriFusion** for **RMIT Vibe Coding 2025**
+
+📜 **License**
+This project is open-source under the MIT License. Free to use and modify for educational purposes.
+
+========================================================
+End of README
+-->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MindQuest: A Journey to Well-being</title>
+  <style>
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: linear-gradient(180deg, #a8edea, #fed6e3);
+      color: #333;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      margin: 0;
+      text-align: center;
+    }
+    .screen { display: none; }
+    .active { display: block; }
+    button {
+      padding: 10px 20px;
+      border: none;
+      border-radius: 10px;
+      background-color: #6c63ff;
+      color: white;
+      cursor: pointer;
+      margin: 10px;
+      transition: 0.3s;
+    }
+    button:hover { background-color: #574b90; }
+    .question {
+      font-size: 1.2em;
+      margin-bottom: 15px;
+    }
+    .option {
+      display: block;
+      background: #fff;
+      margin: 5px auto;
+      padding: 10px;
+      width: 80%;
+      border-radius: 10px;
+      cursor: pointer;
+      border: 2px solid transparent;
+      transition: 0.3s;
+    }
+    .option:hover { border-color: #6c63ff; }
+    #musicBtn {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      background: none;
+      border: none;
+      font-size: 24px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <button id="musicBtn" onclick="toggleMusic()">🔈</button>
+
+  <audio id="bgMusic" loop>
+    <source src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_3a7d795b70.mp3?filename=relaxing-piano-music-142199.mp3" type="audio/mpeg">
+  </audio>
+
+  <div id="menu" class="screen active">
+    <h1>🧠 MindQuest: A Journey to Well-being</h1>
+    <p>Explore your mental health awareness through choices that shape your journey.</p>
+    <button onclick="startGame()">Start Game</button>
+  </div>
+
+  <div id="game" class="screen">
+    <h2 id="question" class="question"></h2>
+    <div id="options"></div>
+  </div>
+
+  <div id="result" class="screen">
+    <h2 id="resultText"></h2>
+    <button onclick="restartGame()">Play Again</button>
+  </div>
+
+  <script>
+    const questions = [
+      {
+        question: "You’ve been feeling stressed after school or work. What do you do?",
+        options: [
+          { text: "Scroll on social media for hours", score: 0 },
+          { text: "Go for a short walk or do deep breathing", score: 2 },
+          { text: "Ignore it and keep working", score: 1 }
+        ]
+      },
+      {
+        question: "Your friend seems distant lately. What do you do?",
+        options: [
+          { text: "Check in and ask how they’re doing", score: 2 },
+          { text: "Wait for them to reach out", score: 1 },
+          { text: "Assume they don’t want to talk", score: 0 }
+        ]
+      },
+      {
+        question: "You’re overwhelmed by deadlines. What’s your move?",
+        options: [
+          { text: "Break tasks into smaller steps and rest between", score: 2 },
+          { text: "Pull an all-nighter", score: 0 },
+          { text: "Procrastinate and worry later", score: 1 }
+        ]
+      },
+      {
+        question: "You’re feeling down for several days. What do you do?",
+        options: [
+          { text: "Talk to someone you trust or seek help", score: 2 },
+          { text: "Keep it to yourself", score: 0 },
+          { text: "Distract yourself without reflection", score: 1 }
+        ]
+      }
+    ];
+
+    let currentQuestion = 0;
+    let score = 0;
+
+    function startGame() {
+      document.getElementById('menu').classList.remove('active');
+      document.getElementById('game').classList.add('active');
+      document.getElementById('bgMusic').play();
+      showQuestion();
+    }
+
+    function showQuestion() {
+      const q = questions[currentQuestion];
+      document.getElementById('question').innerText = q.question;
+      const optionsDiv = document.getElementById('options');
+      optionsDiv.innerHTML = '';
+      q.options.forEach(opt => {
+        const btn = document.createElement('div');
+        btn.classList.add('option');
+        btn.innerText = opt.text;
+        btn.onclick = () => selectOption(opt.score);
+        optionsDiv.appendChild(btn);
+      });
+    }
+
+    function selectOption(scoreValue) {
+      score += scoreValue;
+      currentQuestion++;
+      if (currentQuestion < questions.length) showQuestion();
+      else endGame();
+    }
+
+    function endGame() {
+      document.getElementById('game').classList.remove('active');
+      document.getElementById('result').classList.add('active');
+      let resultText = '';
+      if (score >= 7) resultText = "🌈 You have a great sense of emotional balance and empathy! Keep it up!";
+      else if (score >= 4) resultText = "💭 You’re learning to take care of your mental health. Small steps make big changes!";
+      else resultText = "🌧️ It’s okay to not be okay. Remember to reach out for help and take breaks.";
+      document.getElementById('resultText').innerText = resultText;
+    }
+
+    function restartGame() {
+      score = 0;
+      currentQuestion = 0;
+      document.getElementById('result').classList.remove('active');
+      document.getElementById('menu').classList.add('active');
+    }
+
+    function toggleMusic() {
+      const music = document.getElementById('bgMusic');
+      const btn = document.getElementById('musicBtn');
+      if (music.paused) {
+        music.play();
+        btn.textContent = '🔈';
+      } else {
+        music.pause();
+        btn.textContent = '🔇';
+      }
+    }
+  </script>
+</body>
+</html>
